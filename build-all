@@ -1,0 +1,5 @@
+#!/bin/bash
+cd ~/build
+for dir in */; do
+	build-aur $dir
+done
