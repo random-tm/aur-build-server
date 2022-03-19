@@ -2,9 +2,12 @@
 cd ~/build
 git clone https://aur.archlinux.org/$1.git
 cd $1
+echo $1
 GIT_STATUS=$(git pull)
+echo $GIT_STATUS
 if [[ "$GIT_STATUS" !=  "Already up to date." ]]; then
 	git pull
+	echo $(git rev-parse HEAD) > ../../packages/$1.version
 	makepkg -s
 	mv *.tar.zst ../../packages/$1.pkg.tar.zst
 fi
