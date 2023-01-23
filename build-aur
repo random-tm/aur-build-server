@@ -1,13 +1,23 @@
 #!/bin/bash
 cd ~/build
 DIR=$(echo ${@%/})
+
 git clone https://aur.archlinux.org/$DIR.git
-cd $DIR
 echo $DIR
-git pull
+cd $DIR
+
+LOCK_FILE=~/build/$DIR.lock
+if [ -f "$LOCK_FILE" ]; then
+        COMMIT_LOCK=$(cat $LOCK_FILE)
+        git checkout $COMMIT_LOCK
+else
+        git pull
+fi
+
 echo $(git rev-parse HEAD) > ../../packages/$DIR.version
 makepkg -s
 REQUESTED_VERSION_PATH=~/build/$DIR.version
+
 if [ -f "$REQUESTED_VERSION_PATH" ]; then
         REQUESTED_PACKAGE_REGEX=$(cat $REQUESTED_VERSION_PATH)
         REQUESTED_PACKAGE=$(ls -t *.pkg.tar.zst | grep $REQUESTED_PACKAGE_REGEX)
