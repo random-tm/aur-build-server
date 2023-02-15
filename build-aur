@@ -2,6 +2,8 @@
 cd ~/build
 DIR=$(echo ${@%/})
 
+rm -rf $DIR
+
 git clone https://aur.archlinux.org/$DIR.git
 echo $DIR
 cd $DIR
@@ -14,7 +16,6 @@ else
         git pull
 fi
 
-echo $(git rev-parse HEAD) > ../../packages/$DIR.version
 makepkg -s
 REQUESTED_VERSION_PATH=~/build/$DIR.version
 
@@ -22,7 +23,13 @@ if [ -f "$REQUESTED_VERSION_PATH" ]; then
         REQUESTED_PACKAGE_REGEX=$(cat $REQUESTED_VERSION_PATH)
         REQUESTED_PACKAGE=$(ls -t *.pkg.tar.zst | grep $REQUESTED_PACKAGE_REGEX)
         cp -u $REQUESTED_PACKAGE ../../packages/$DIR.pkg.tar.zst
+        FILE_HASH=$(md5sum $REQUESTED_PACKAGE)
+        FILE_PARTS=($FILE_HASH)
+        echo ${FILE_PARTS[0]} > ../../packages/$DIR.version
 else
         NEWEST_PKG=$(ls -t *.pkg.tar.zst | head -1)
         cp -u $NEWEST_PKG ../../packages/$DIR.pkg.tar.zst
+        FILE_HASH=$(md5sum $NEWEST_PKG)
+        FILE_PARTS=($FILE_HASH)
+        echo ${FILE_PARTS[0]} > ../../packages/$DIR.version
 fi
