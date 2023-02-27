@@ -2,21 +2,31 @@
 cd ~/build
 DIR=$(echo ${@%/})
 
-rm -rf $DIR
+if [ -d "./$DIR" ]; then
+        cd $DIR
+        git clean -dfx
+        git pull
+else
+        git clone https://aur.archlinux.org/$DIR.git
+        cd $DIR
+fi
 
-git clone https://aur.archlinux.org/$DIR.git
 echo $DIR
-cd $DIR
 
 LOCK_FILE=~/build/$DIR.lock
 if [ -f "$LOCK_FILE" ]; then
         COMMIT_LOCK=$(cat $LOCK_FILE)
         git checkout $COMMIT_LOCK
-else
-        git pull
 fi
 
-makepkg -s
+makepkg -s > /tmp/$DIR.build.log 2>&1
+if [ $? -ne 0 ]; then
+        echo "Failed to build package "$DIR
+        mv /tmp/$DIR.build.log ~/logs/
+fi
+
+rm /tmp/$DIR.build.log
+
 REQUESTED_VERSION_PATH=~/build/$DIR.version
 
 if [ -f "$REQUESTED_VERSION_PATH" ]; then
